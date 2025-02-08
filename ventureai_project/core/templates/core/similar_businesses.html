@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Похожие бизнесы</h2>
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if businesses %}
+        <ul class="list-group">
+            {% for business in businesses %}
+                <li class="list-group-item">
+                    <strong>{{ business.name }}</strong><br>
+                    Адрес: {{ business.vicinity }}<br>
+                    Рейтинг: {{ business.rating }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Нет данных о похожих бизнесах.</p>
+    {% endif %}
+</div>
+{% endblock %}

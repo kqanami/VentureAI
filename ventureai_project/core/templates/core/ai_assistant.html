@@ -1,0 +1,21 @@
+
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Бизнес-консультант</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="prompt" class="form-label">Ваш вопрос:</label>
+            <textarea class="form-control" id="prompt" name="prompt" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Получить совет</button>
+    </form>
+    {% if advice %}
+        <div class="mt-4">
+            <h4>Ответ:</h4>
+            <p>{{ advice }}</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
