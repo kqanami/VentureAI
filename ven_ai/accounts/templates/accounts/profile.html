@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h3 class="mb-0">Мой профиль</h3>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <!-- Боковая панель с аватаркой -->
+        <div class="col-md-4 text-center mb-3">
+          <img src="{% static 'images/default_avatar.png' %}" alt="Аватар" class="img-fluid rounded-circle mb-2" style="max-width: 150px;">
+        </div>
+        <!-- Основная информация -->
+        <div class="col-md-8">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item"><strong>Имя пользователя:</strong> {{ request.user.username }}</li>
+            <li class="list-group-item"><strong>Email:</strong> {{ request.user.email }}</li>
+            <li class="list-group-item"><strong>Токены:</strong> {{ request.user.tokens }}</li>
+            <li class="list-group-item"><strong>Бесплатных анализов:</strong> {{ request.user.free_analysis_count }}</li>
+          </ul>
+          <div class="mt-3">
+            <a href="{% url 'password_change' %}" class="btn btn-info me-2">Сменить пароль</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

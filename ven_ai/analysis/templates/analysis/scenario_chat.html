@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Дополнительный чат по анализу #{{ analysis_req.id }}</h2>
+  <div id="chatContainer" class="border p-3 mb-4" style="max-height:400px; overflow-y:auto; background: #f8f8f8;">
+    {% if analysis_req.chat_history %}
+      {% for msg in analysis_req.chat_history %}
+        <div class="d-flex mb-3 {% if msg.role == 'assistant' %}justify-content-start{% else %}justify-content-end{% endif %} animate__animated animate__fadeInUp">
+          <div class="p-3 rounded" style="max-width:75%;
+            {% if msg.role == 'assistant' %}
+              background-color: #e2e3e5; color: #000;
+            {% else %}
+              background-color: #007bff; color: #fff;
+            {% endif %}">
+            <small class="d-block">
+              <strong>{{ msg.role|capfirst }}</strong>
+              {% if msg.timestamp %}<span class="text-muted" style="font-size:0.75em;">{{ msg.timestamp }}</span>{% endif %}
+            </small>
+            <p class="mb-0">{{ msg.content }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-center text-muted">Пока нет сообщений.</p>
+    {% endif %}
+  </div>
+
+  <form method="POST" class="mb-5">
+    {% csrf_token %}
+    <div class="input-group">
+      <textarea class="form-control" name="user_message" rows="2" placeholder="Ваш запрос..."></textarea>
+      <button type="submit" class="btn btn-primary">Отправить</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Автоскролл к последнему сообщению
+  document.addEventListener("DOMContentLoaded", function() {
+    var chatContainer = document.getElementById("chatContainer");
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  });
+</script>
+{% endblock %}

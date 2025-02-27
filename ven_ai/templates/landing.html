@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="jumbotron jumbotron-fluid text-center" style="background-image: url('{% static "images/hero-bg.jpg" %}'); background-size: cover; background-position: center; color: white; padding: 150px 0;">
+  <div class="container">
+    <h1 class="display-4 fw-bold">Добро пожаловать в [Ваш сервис]</h1>
+    <p class="lead">Проверьте свой бизнес-план с помощью AI-анализов и экспертных рекомендаций.</p>
+    <a href="{% url 'register' %}" class="btn btn-primary btn-lg me-2">Попробовать сейчас</a>
+    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Войти</a>
+  </div>
+</div>
+
+<!-- Features Section -->
+<div class="container py-5">
+  <div class="row text-center">
+    <div class="col-md-4">
+      <i class="bi bi-speedometer2" style="font-size: 3rem; color: #007bff;"></i>
+      <h4 class="mt-3">Быстрый анализ</h4>
+      <p>Мгновенный анализ ваших бизнес-планов с помощью передовых AI-технологий.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-shield-check" style="font-size: 3rem; color: #28a745;"></i>
+      <h4 class="mt-3">Надёжность</h4>
+      <p>Гарантированные результаты, основанные на проверенных алгоритмах и экспертизе.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-chat-left-text" style="font-size: 3rem; color: #ffc107;"></i>
+      <h4 class="mt-3">Поддержка 24/7</h4>
+      <p>Всесторонняя поддержка и консультации в режиме онлайн.</p>
+    </div>
+  </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="container-fluid bg-light py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h2>Как это работает?</h2>
+        <p>Наш сервис объединяет мощный AI-анализ, передовые ML-модели и экспертные рекомендации. Создайте профиль, загрузите бизнес-план и получите подробный анализ с предложениями по улучшению.</p>
+      </div>
+      <div class="col-md-6">
+        <img src="{% static 'images/how-it-works.png' %}" alt="Как это работает" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Testimonials Section -->
+<div class="container py-5">
+  <h2 class="text-center mb-4">Отзывы наших клиентов</h2>
+  <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      <div class="carousel-item active">
+        <blockquote class="blockquote text-center">
+          <p class="mb-4">"Сервис перевернул мой взгляд на бизнес-анализ. Рекомендую всем стартаперам!"</p>
+          <footer class="blockquote-footer">Иван Иванов, <cite title="Source Title">CEO компании X</cite></footer>
+        </blockquote>
+      </div>
+      <div class="carousel-item">
+        <blockquote class="blockquote text-center">
+          <p class="mb-4">"Быстрый, точный и очень удобный инструмент для анализа. Отличная поддержка."</p>
+          <footer class="blockquote-footer">Мария Петрова, <cite title="Source Title">Основатель компании Y</cite></footer>
+        </blockquote>
+      </div>
+      <div class="carousel-item">
+        <blockquote class="blockquote text-center">
+          <p class="mb-4">"Сервис помог мне выявить слабые места моего бизнес-плана и скорректировать стратегию."</p>
+          <footer class="blockquote-footer">Алексей Сидоров, <cite title="Source Title">Предприниматель</cite></footer>
+        </blockquote>
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Предыдущий</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Следующий</span>
+    </button>
+  </div>
+</div>
+
+<!-- Call to Action Section -->
+<div class="container-fluid bg-primary text-white py-5">
+  <div class="container text-center">
+    <h2>Готовы начать?</h2>
+    <p class="lead">Зарегистрируйтесь сегодня и получите первый анализ бесплатно!</p>
+    <a href="{% url 'register' %}" class="btn btn-light btn-lg me-2">Регистрация</a>
+    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Войти</a>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-4">
+  <div class="container text-center">
+    <p class="mb-0">&copy; {{ now|date:"Y" }} Venture AI. Все права защищены.</p>
+  </div>
+</footer>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="container my-5">
+  <!-- Заголовок -->
+  <div class="row">
+    <div class="col-12 text-center mb-4">
+      <h2 class="animate__animated animate__fadeInDown">
+        Результаты анализа проекта "{{ analysis_req.project.name }}"
+      </h2>
+      <p class="text-muted animate__animated animate__fadeInUp">
+        Анализ проведён: {{ analysis_req.result.timestamp }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Карточки с результатами -->
+  <div class="row">
+    <!-- Вероятность успеха с прогресс-баром -->
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-4 animate__animated animate__fadeInLeft">
+        <div class="card-body">
+          <h4 class="card-title">Вероятность успеха</h4>
+          <h1 class="display-4">{{ analysis_req.result.success_prob|floatformat:2 }}%</h1>
+          <p class="card-text">
+            Наша модель прогнозирует, что шансы на успех проекта составляют
+            <strong>{{ analysis_req.result.success_prob|floatformat:2 }}%</strong>.
+          </p>
+          <div class="progress mt-3" style="height: 25px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: {{ analysis_req.result.success_prob|floatformat:2 }}%;" aria-valuenow="{{ analysis_req.result.success_prob|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100">
+              {{ analysis_req.result.success_prob|floatformat:2 }}%
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Диаграмма -->
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-4 animate__animated animate__fadeInRight">
+        <div class="card-body">
+          <canvas id="resultChart" width="400" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Рекомендации -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm animate__animated animate__fadeInUp">
+        <div class="card-header">
+          <h4>Рекомендации</h4>
+        </div>
+        <div class="card-body">
+          <p class="card-text" style="white-space: pre-wrap;">
+            {{ analysis_req.result.recommendations|linebreaks }}
+          </p>
+          <button id="copyRecs" class="btn btn-outline-secondary btn-sm mt-2">
+            Скопировать рекомендации
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Действия -->
+  <div class="row mt-4">
+    <div class="col-12 text-center">
+      <a href="{% url 'project_detail' analysis_req.project.id %}" class="btn btn-secondary me-2">
+        Вернуться к проекту
+      </a>
+      <a href="{% url 'scenario_chat' analysis_req.id %}" class="btn btn-info me-2">
+        Уточнить анализ (чат)
+      </a>
+      <button id="downloadPDF" class="btn btn-primary">
+        Скачать PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Подключаем Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Подключаем html2pdf для генерации PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  // Плагин для вывода текста в центре doughnut диаграммы
+  const centerTextPlugin = {
+    id: 'centerText',
+    beforeDraw(chart) {
+      const {ctx, chartArea: {width, height}} = chart;
+      ctx.save();
+      const fontSize = (height / 114).toFixed(2);
+      ctx.font = fontSize + "em sans-serif";
+      ctx.textBaseline = "middle";
+      const text = "{{ analysis_req.result.success_prob|floatformat:2 }}%",
+            textX = Math.round((width - ctx.measureText(text).width) / 2),
+            textY = height / 2;
+      ctx.fillText(text, textX, textY);
+      ctx.restore();
+    }
+  };
+
+  // Получаем значения вероятности успеха
+  const successProb = parseFloat("{{ analysis_req.result.success_prob|floatformat:2 }}");
+  const failProb = 100 - successProb;
+
+  const ctx = document.getElementById('resultChart').getContext('2d');
+  const resultChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+          labels: ['Успех', 'Неуспех'],
+          datasets: [{
+              data: [successProb, failProb],
+              backgroundColor: ['#28a745', '#dc3545'],
+              hoverBackgroundColor: ['#218838', '#c82333']
+          }]
+      },
+      options: {
+          responsive: true,
+          cutout: '70%',
+          animation: {
+            animateRotate: true,
+            duration: 1500
+          },
+          plugins: {
+              legend: { position: 'bottom' },
+              title: {
+                  display: true,
+                  text: 'Прогноз распределения'
+              }
+          }
+      },
+      plugins: [centerTextPlugin]
+  });
+
+  // Копирование рекомендаций в буфер обмена
+  document.getElementById('copyRecs').addEventListener('click', function() {
+    const text = "{{ analysis_req.result.recommendations|escapejs }}";
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Рекомендации скопированы в буфер обмена!');
+    }).catch(err => {
+      alert('Ошибка копирования: ' + err);
+    });
+  });
+
+  // Скачивание страницы в PDF
+  document.getElementById('downloadPDF').addEventListener('click', function() {
+    const element = document.querySelector('.container');
+    const opt = {
+      margin:       0.5,
+      filename:     'analysis_result_{{ analysis_req.project.name|slugify }}.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+  });
+</script>
+{% endblock %}

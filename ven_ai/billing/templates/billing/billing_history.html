@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>История покупок</h2>
+    {% if transactions %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Токены</th>
+                    <th>Сумма (тг.)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for tx in transactions %}
+                <tr>
+                    <td>{{ tx.created_at|date:"d.m.Y H:i" }}</td>
+                    <td>{{ tx.tokens_purchased }}</td>
+                    <td>{{ tx.amount_paid }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>У вас ещё не было покупок.</p>
+    {% endif %}
+</div>
+{% endblock %}

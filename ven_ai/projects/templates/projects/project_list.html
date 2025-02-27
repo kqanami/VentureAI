@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container my-5">
+  <!-- Заголовок и кнопка создания проекта -->
+  <div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+      <h2>Мои проекты</h2>
+      <a href="{% url 'project_create' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Создать проект
+      </a>
+    </div>
+  </div>
+
+  <!-- Форма фильтрации и сортировки -->
+  <form method="get" class="mb-4">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input type="text" name="q" class="form-control" placeholder="Поиск по названию или описанию" value="{{ request.GET.q }}">
+      </div>
+      <div class="col-md-3">
+        <select name="sort" class="form-select">
+          <option value="">Сортировка</option>
+          <option value="budget_asc" {% if request.GET.sort == "budget_asc" %}selected{% endif %}>Бюджет (возрастание)</option>
+          <option value="budget_desc" {% if request.GET.sort == "budget_desc" %}selected{% endif %}>Бюджет (убывание)</option>
+          <option value="date_new" {% if request.GET.sort == "date_new" %}selected{% endif %}>Новые проекты</option>
+          <option value="date_old" {% if request.GET.sort == "date_old" %}selected{% endif %}>Старые проекты</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Применить</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Список проектов -->
+  <div class="row">
+    {% for project in projects %}
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+          {% if project.image %}
+            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.name }}">
+          {% else %}
+            <img src="https://via.placeholder.com/350x150" class="card-img-top" alt="Placeholder">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ project.name }}</h5>
+            <p class="card-text">{{ project.description|truncatewords:20 }}</p>
+            <ul class="list-unstyled">
+              <li><strong>Бюджет:</strong> {{ project.budget|floatformat:2 }} тг.</li>
+              <li><strong>Локация:</strong> {{ project.location }}</li>
+            </ul>
+          </div>
+          <div class="card-footer text-center">
+            <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-primary">Подробнее</a>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12">
+        <p class="text-center">Проекты не найдены. Попробуйте изменить параметры фильтра.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Пагинация -->
+  {% if projects.has_other_pages %}
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        {% if projects.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ projects.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Предыдущая">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+        {% endif %}
+        {% for num in projects.paginator.page_range %}
+          <li class="page-item {% if projects.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+          </li>
+        {% endfor %}
+        {% if projects.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ projects.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Следующая">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+</div>
+{% endblock %}

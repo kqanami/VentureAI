@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container my-5">
+  <!-- Заголовок и основные действия -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="mb-1">{{ project.name }}</h2>
+      <p class="text-muted mb-0">Создан: {{ project.created_at|date:"d.m.Y" }}</p>
+    </div>
+    <div class="btn-group">
+      <a href="{% url 'project_update' project.id %}" class="btn btn-warning">
+        <i class="bi bi-update"></i> Редактировать
+      </a>
+      <a href="{% url 'project_delete' project.id %}" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Удалить
+      </a>
+      <a href="{% url 'project_list' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Назад
+      </a>
+    </div>
+  </div>
+
+  <!-- Основная информация -->
+  <div class="row mb-4">
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm">
+        {% if project.image %}
+          <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.name }}" loading="lazy">
+        {% else %}
+          <img src="{% static 'images/placeholder_project.jpg' %}" class="card-img-top" alt="Placeholder" loading="lazy">
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-6 mb-3">
+      <div class="card shadow-sm p-3">
+        <h4>Основная информация</h4>
+        <ul class="list-unstyled">
+          <li><strong>Бюджет:</strong> {{ project.budget|floatformat:2 }} тг.</li>
+          <li><strong>Конкуренция:</strong> {{ project.competition }}</li>
+          <li><strong>Локация:</strong> {{ project.location }}
+              {% if project.latitude and project.longitude %}
+                ({{ project.latitude }}, {{ project.longitude }})
+              {% endif %}
+          </li>
+          <li><strong>Навык маркетинга:</strong> {{ project.marketing_skill }}</li>
+          <li><strong>Опыт команды:</strong> {{ project.team_experience }}</li>
+        </ul>
+        <a href="{% url 'create_analysis' project.id %}" class="btn btn-primary mt-2">
+          <i class="bi bi-bar-chart-line"></i> Запустить анализ
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Табы с дополнительной информацией -->
+  <ul class="nav nav-tabs" id="projectTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">Обзор</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="map-tab" data-bs-toggle="tab" data-bs-target="#map" type="button" role="tab" aria-controls="map" aria-selected="false">Карта</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">История анализов</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="related-tab" data-bs-toggle="tab" data-bs-target="#related" type="button" role="tab" aria-controls="related" aria-selected="false">Похожие проекты</button>
+    </li>
+  </ul>
+  <div class="tab-content p-3 border border-top-0" id="projectTabContent">
+    <!-- Обзор -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+      <h5>Описание проекта</h5>
+      <p>{{ project.description|linebreaks }}</p>
+      <!-- График с использованием Chart.js -->
+      <div class="card mt-3 shadow-sm">
+        <div class="card-header">
+          Прогнозируемый рост (пример)
+        </div>
+        <div class="card-body">
+          <canvas id="growthChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Карта -->
+    <div class="tab-pane fade" id="map" role="tabpanel" aria-labelledby="map-tab">
+      <div id="projectMap" style="height: 400px;"></div>
+    </div>
+    <!-- История анализов -->
+    <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+      {% if project.analysis_requests.all %}
+        <ul class="list-group">
+          {% for analysis in project.analysis_requests.all %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Анализ #{{ analysis.id }} – {{ analysis.created_at|date:"d.m.Y H:i" }}
+              <a href="{% url 'analysis_detail' analysis.id %}" class="btn btn-sm btn-outline-secondary">Посмотреть</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">Анализы ещё не проводились.</p>
+      {% endif %}
+    </div>
+    <!-- Похожие проекты -->
+    <div class="tab-pane fade" id="related" role="tabpanel" aria-labelledby="related-tab">
+      {% if related_projects %}
+        <div class="row">
+          {% for proj in related_projects %}
+            <div class="col-md-4 mb-3">
+              <div class="card h-100 shadow-sm">
+                {% if proj.image %}
+                  <img src="{{ proj.image.url }}" class="card-img-top" alt="{{ proj.name }}" loading="lazy">
+                {% else %}
+                  <img src="{% static 'images/placeholder_project_thumb.jpg' %}" class="card-img-top" alt="Placeholder" loading="lazy">
+                {% endif %}
+                <div class="card-body">
+                  <h6 class="card-title">{{ proj.name }}</h6>
+                  <p class="card-text">{{ proj.description|truncatewords:15 }}</p>
+                </div>
+                <div class="card-footer text-center">
+                  <a href="{% url 'project_detail' proj.id %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">Похожие проекты отсутствуют.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Модальное окно для редактирования проекта -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form action="{% url 'project_update' project.id %}" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="editProjectModalLabel">Редактирование проекта</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+        </div>
+        <div class="modal-body">
+          {% include "projects/project_update.html" %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Подключение внешних библиотек -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha384-..." crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha384-..." crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Инициализация карты
+  var mapElement = document.getElementById("projectMap");
+  if (mapElement) {
+    var lat = {{ project.latitude|default:"55.7558" }};
+    var lng = {{ project.longitude|default:"37.6173" }};
+    var map = L.map('projectMap').setView([lat, lng], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map)
+      .bindPopup("Местоположение проекта")
+      .openPopup();
+
+    // Обновление карты при переключении на вкладку "Карта"
+    var tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+    tabButtons.forEach(function(button) {
+      button.addEventListener('shown.bs.tab', function(event) {
+        if (event.target.id === 'map-tab') {
+          map.invalidateSize();
+        }
+      });
+    });
+  }
+
+  // Инициализация графика
+  var ctx = document.getElementById('growthChart').getContext('2d');
+  var months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+  var growthData = Array.from({length: 12}, () => Math.floor(Math.random() * 100));
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Прогнозируемый рост',
+        data: growthData,
+        borderColor: '#007bff',
+        backgroundColor: 'rgba(0,123,255,0.1)',
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        title: { display: true, text: 'Прогноз роста по месяцам' }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}
