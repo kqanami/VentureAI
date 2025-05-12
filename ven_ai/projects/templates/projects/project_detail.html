@@ -3,216 +3,198 @@
 {% load humanize %}
 
 {% block content %}
-<div class="container my-5">
-  <!-- Заголовок и основные действия -->
-  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-    <div>
-      <h2 class="mb-1">{{ project.name }}</h2>
-      <p class="text-muted mb-0">Создан: {{ project.created_at|date:"d.m.Y" }}</p>
-    </div>
-    <div class="btn-group">
-      <a href="{% url 'project_update' project.id %}" class="btn btn-warning">
-        <i class="bi bi-update"></i> Редактировать
-      </a>
-      <a href="{% url 'project_delete' project.id %}" class="btn btn-danger">
-        <i class="bi bi-trash"></i> Удалить
-      </a>
-      <a href="{% url 'project_list' %}" class="btn btn-secondary">
-        <i class="bi bi-arrow-left"></i> Назад
-      </a>
+<style>
+  :root {
+    --apple-blur: saturate(180%) blur(20px);
+    --ios-surface: rgba(255, 255, 255, 0.8);
+    --ios-primary: #007AFF;
+    --ios-primary-rgb: 0, 122, 255;
+    --ios-label: #3C3C43;
+    --ios-separator: rgba(60, 60, 67, 0.15);
+  }
+
+  .project-header {
+    background: linear-gradient(150deg, #007AFF 0%, #0040DD 100%);
+    border-radius: 2rem;
+    position: relative;
+    backdrop-filter: var(--apple-blur);
+    padding: 3rem;
+  }
+
+  .project-header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 50% 50%,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0) 70%);
+    animation: pulse 6s infinite;
+  }
+
+  .project-toolbar .btn {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: var(--apple-blur);
+    border: 1px solid var(--ios-separator);
+    color: white;
+  }
+
+  .project-media {
+    border-radius: 2rem;
+    background: var(--ios-surface);
+    backdrop-filter: var(--apple-blur);
+    border: 1px solid var(--ios-separator);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .project-media:hover {
+    transform: translateY(-5px);
+  }
+
+  .project-info-card {
+    background: var(--ios-surface);
+    border-radius: 1.8rem;
+    padding: 2rem;
+    backdrop-filter: var(--apple-blur);
+    border: 1px solid var(--ios-separator);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-tabs {
+    border-bottom: 1px solid var(--ios-separator);
+  }
+
+  .nav-tabs .nav-link {
+    font-weight: 500;
+    color: var(--ios-label);
+    padding: 1rem 2rem;
+    border-radius: 1rem;
+    transition: all 0.2s ease;
+  }
+
+  .nav-tabs .nav-link.active {
+    background: rgba(var(--ios-primary-rgb), 0.1);
+    color: var(--ios-primary);
+  }
+
+  .analysis-list-item {
+    background: var(--ios-surface);
+    border-radius: 1.4rem;
+    border: 1px solid var(--ios-separator);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .analysis-list-item:hover {
+    transform: translateX(8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  @keyframes pulse {
+    0% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(30%,10%) scale(1.2); }
+    100% { transform: translate(0,0) scale(1); }
+  }
+
+  .dropdown-item:hover {
+    background-color: rgba(var(--ios-primary-rgb), 0.05);
+    color: var(--ios-primary);
+  }
+
+  @media (max-width: 576px) {
+    .project-header {
+      padding: 1.5rem;
+    }
+    .project-info-card {
+      padding: 1.2rem;
+    }
+  }
+</style>
+
+<div class="container-main">
+  <div class="project-header mb-5">
+    <div class="position-relative z-10">
+      <div class="d-flex flex-column flex-md-row justify-content-between gap-4">
+        <div class="flex-grow-1">
+          <h1 class="display-5 fw-bold mb-3 text-light">{{ project.name }}</h1>
+
+          {% if project.image %}
+            <div class="project-media mb-4">
+              <img src="{{ project.image.url }}" class="img-fluid" alt="Изображение проекта">
+            </div>
+          {% endif %}
+
+          <div class="d-flex flex-wrap gap-3 text-light opacity-85">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-calendar fs-5"></i>
+              <span>{{ project.created_at|date:"d M Y" }}</span>
+            </div>
+            <div class="vr opacity-50"></div>
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-geo-alt fs-5"></i>
+              <span>{{ project.location|default:"Не указано" }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="project-toolbar d-flex gap-2">
+          <button class="btn btn-icon rounded-circle"
+                  data-bs-toggle="dropdown"
+                  aria-label="Действия с проектом">
+            <i class="bi bi-three-dots-vertical fs-5 text-light"></i>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end shadow">
+            <a class="dropdown-item" href="{% url 'project_update' project.id %}">
+              <i class="bi bi-pencil me-2"></i>Редактировать
+
+            </a>
+            <a class="dropdown-item text-danger"
+               href="{% url 'project_delete' project.id %}"
+               data-confirm="Вы уверены, что хотите удалить проект?">
+              <i class="bi bi-trash me-2"></i>Удалить
+            </a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="{% url 'project_list' %}">
+              <i class="bi bi-arrow-left me-2"></i>К списку проектов
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Основная информация -->
-  <div class="row mb-4">
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm">
-        {% if project.image %}
-          <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.name }}" loading="lazy">
+  <div class="row g-5 mb-5">
+    <div class="col-md-7">
+      <div class="project-info-card">
+        <h4 class="mb-3">Информация о проекте</h4>
+        <p><strong>Бюджет:</strong> {{ project.budget|intcomma }} ₸</p>
+        <p><strong>Описание:</strong> {{ project.description|default:"Нет описания" }}</p>
+        <p><strong>Координаты:</strong> {{ project.latitude }}, {{ project.longitude }}</p>
+      </div>
+    </div>
+    <div class="col-md-5">
+      <div class="project-info-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="mb-0">Анализы</h4>
+          <a href="{% url 'create_analysis' project.id %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg me-1"></i>Создать
+          </a>
+        </div>
+
+        {% if project.analysisrequest_set.exists %}
+          {% for analysis in project.analysisrequest_set.all %}
+            <div class="analysis-list-item mb-3">
+              <strong>Статус:</strong> {{ analysis.status }}<br>
+              <strong>Создан:</strong> {{ analysis.created_at|naturaltime }}<br>
+              <a href="{% url 'analysis_detail' analysis.id %}" class="text-primary">Перейти к анализу →</a>
+            </div>
+          {% endfor %}
         {% else %}
-          <img src="{% static 'images/placeholder_project.jpg' %}" class="card-img-top" alt="Placeholder" loading="lazy">
+          <p class="text-muted">Анализов пока нет.</p>
         {% endif %}
       </div>
     </div>
-    <div class="col-md-6 mb-3">
-      <div class="card shadow-sm p-3">
-        <h4>Основная информация</h4>
-        <ul class="list-unstyled">
-          <li><strong>Бюджет:</strong> {{ project.budget|floatformat:2 }} тг.</li>
-          <li><strong>Конкуренция:</strong> {{ project.competition }}</li>
-          <li><strong>Локация:</strong> {{ project.location }}
-              {% if project.latitude and project.longitude %}
-                ({{ project.latitude }}, {{ project.longitude }})
-              {% endif %}
-          </li>
-          <li><strong>Навык маркетинга:</strong> {{ project.marketing_skill }}</li>
-          <li><strong>Опыт команды:</strong> {{ project.team_experience }}</li>
-        </ul>
-        <a href="{% url 'create_analysis' project.id %}" class="btn btn-primary mt-2">
-          <i class="bi bi-bar-chart-line"></i> Запустить анализ
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Табы с дополнительной информацией -->
-  <ul class="nav nav-tabs" id="projectTab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">Обзор</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="map-tab" data-bs-toggle="tab" data-bs-target="#map" type="button" role="tab" aria-controls="map" aria-selected="false">Карта</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">История анализов</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="related-tab" data-bs-toggle="tab" data-bs-target="#related" type="button" role="tab" aria-controls="related" aria-selected="false">Похожие проекты</button>
-    </li>
-  </ul>
-  <div class="tab-content p-3 border border-top-0" id="projectTabContent">
-    <!-- Обзор -->
-    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
-      <h5>Описание проекта</h5>
-      <p>{{ project.description|linebreaks }}</p>
-      <!-- График с использованием Chart.js -->
-      <div class="card mt-3 shadow-sm">
-        <div class="card-header">
-          Прогнозируемый рост (пример)
-        </div>
-        <div class="card-body">
-          <canvas id="growthChart" width="400" height="200"></canvas>
-        </div>
-      </div>
-    </div>
-    <!-- Карта -->
-    <div class="tab-pane fade" id="map" role="tabpanel" aria-labelledby="map-tab">
-      <div id="projectMap" style="height: 400px;"></div>
-    </div>
-    <!-- История анализов -->
-    <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
-      {% if project.analysis_requests.all %}
-        <ul class="list-group">
-          {% for analysis in project.analysis_requests.all %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              Анализ #{{ analysis.id }} – {{ analysis.created_at|date:"d.m.Y H:i" }}
-              <a href="{% url 'analysis_detail' analysis.id %}" class="btn btn-sm btn-outline-secondary">Посмотреть</a>
-            </li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="text-muted">Анализы ещё не проводились.</p>
-      {% endif %}
-    </div>
-    <!-- Похожие проекты -->
-    <div class="tab-pane fade" id="related" role="tabpanel" aria-labelledby="related-tab">
-      {% if related_projects %}
-        <div class="row">
-          {% for proj in related_projects %}
-            <div class="col-md-4 mb-3">
-              <div class="card h-100 shadow-sm">
-                {% if proj.image %}
-                  <img src="{{ proj.image.url }}" class="card-img-top" alt="{{ proj.name }}" loading="lazy">
-                {% else %}
-                  <img src="{% static 'images/placeholder_project_thumb.jpg' %}" class="card-img-top" alt="Placeholder" loading="lazy">
-                {% endif %}
-                <div class="card-body">
-                  <h6 class="card-title">{{ proj.name }}</h6>
-                  <p class="card-text">{{ proj.description|truncatewords:15 }}</p>
-                </div>
-                <div class="card-footer text-center">
-                  <a href="{% url 'project_detail' proj.id %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
-                </div>
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-muted">Похожие проекты отсутствуют.</p>
-      {% endif %}
-    </div>
   </div>
 </div>
-
-<!-- Модальное окно для редактирования проекта -->
-<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <form action="{% url 'project_update' project.id %}" method="post">
-        {% csrf_token %}
-        <div class="modal-header">
-          <h5 class="modal-title" id="editProjectModalLabel">Редактирование проекта</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-        </div>
-        <div class="modal-body">
-          {% include "projects/project_update.html" %}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-          <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- Подключение внешних библиотек -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha384-..." crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha384-..." crossorigin=""></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  // Инициализация карты
-  var mapElement = document.getElementById("projectMap");
-  if (mapElement) {
-    var lat = {{ project.latitude|default:"55.7558" }};
-    var lng = {{ project.longitude|default:"37.6173" }};
-    var map = L.map('projectMap').setView([lat, lng], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-    L.marker([lat, lng]).addTo(map)
-      .bindPopup("Местоположение проекта")
-      .openPopup();
-
-    // Обновление карты при переключении на вкладку "Карта"
-    var tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
-    tabButtons.forEach(function(button) {
-      button.addEventListener('shown.bs.tab', function(event) {
-        if (event.target.id === 'map-tab') {
-          map.invalidateSize();
-        }
-      });
-    });
-  }
-
-  // Инициализация графика
-  var ctx = document.getElementById('growthChart').getContext('2d');
-  var months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  var growthData = Array.from({length: 12}, () => Math.floor(Math.random() * 100));
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: months,
-      datasets: [{
-        label: 'Прогнозируемый рост',
-        data: growthData,
-        borderColor: '#007bff',
-        backgroundColor: 'rgba(0,123,255,0.1)',
-        fill: true,
-        tension: 0.4
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom' },
-        title: { display: true, text: 'Прогноз роста по месяцам' }
-      }
-    }
-  });
-});
-</script>
 {% endblock %}

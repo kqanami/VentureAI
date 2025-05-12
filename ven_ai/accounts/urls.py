@@ -3,6 +3,7 @@ from django.contrib.auth import views as auth_views
 from .views import register_view, activate_account_view, profile_view
 from django.contrib.auth.views import LogoutView
 
+
 urlpatterns = [
     # Регистрация и активация
     path('register/', register_view, name='register'),
@@ -13,7 +14,7 @@ urlpatterns = [
 
     # Логин / Логаут
     path('login/', auth_views.LoginView.as_view(template_name='accounts/login.html'), name='login'),
-    path('logout/', LogoutView.as_view(template_name='accounts/logout.html'), name='logout'),
+    path('logout/', LogoutView.as_view(next_page='logout_success'), name='logout'),
 
     # Смена пароля (для залогиненных)
     path('password-change/', auth_views.PasswordChangeView.as_view(

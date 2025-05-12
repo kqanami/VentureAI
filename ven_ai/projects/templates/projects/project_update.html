@@ -1,13 +1,138 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-<div class="container mt-5">
-    <h2>Редактирование проекта: {{ project.name }}</h2>
-    <form method="POST" enctype="multipart/form-data">
+<style>
+  .edit-card {
+    border-radius: 1.5rem;
+    overflow: hidden;
+    backdrop-filter: saturate(180%) blur(20px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, #007AFF, #0040DD);
+    border-bottom: none;
+    padding: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-control {
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.3s var(--ease-out);
+  }
+
+  .form-control:focus {
+    border-color: #007AFF;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #34C759, #28A745);
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    transition: transform 0.2s;
+  }
+
+  .btn-secondary {
+    background: rgba(120, 120, 128, 0.2);
+    border: none;
+    border-radius: 0.75rem;
+    color: #007AFF;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s;
+  }
+
+  .btn-group {
+    gap: 1rem;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .form-check-input {
+    border-radius: 0.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="edit-card">
+    <div class="card-header text-white">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-pencil-square fs-1"></i>
+        <div>
+          <h1 class="h2 mb-1">Редактирование проекта</h1>
+          <p class="mb-0 opacity-85">{{ project.name }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body p-4">
+      <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
         {% csrf_token %}
-        {{ form|crispy }}
-        <button type="submit" class="btn btn-primary">Сохранить</button>
-        <a href="{% url 'project_detail' project.pk %}" class="btn btn-secondary">Отмена</a>
-    </form>
+
+        <div class="row g-4">
+          {% for field in form %}
+            <div class="col-md-6">
+              <div class="form-floating">
+                {{ field|as_crispy_field }}
+                {% if field.help_text %}
+                  <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-end gap-3 mt-5">
+          <a href="{% url 'project_detail' project.pk %}"
+             class="btn btn-secondary d-flex align-items-center gap-2">
+            <i class="bi bi-x-circle"></i>
+            Отмена
+          </a>
+          <button type="submit"
+                  class="btn btn-success d-flex align-items-center gap-2">
+            <i class="bi bi-check2-circle"></i>
+            Сохранить изменения
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Кастомная валидация формы
+  const forms = document.querySelectorAll('.needs-validation')
+  Array.from(forms).forEach(form => {
+    form.addEventListener('submit', event => {
+      if (!form.checkValidity()) {
+        event.preventDefault()
+        event.stopPropagation()
+      }
+      form.classList.add('was-validated')
+    }, false)
+  })
+
+  // Анимация элементов формы
+  document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('focus', () => {
+      input.parentElement.style.transform = 'scale(1.02)'
+    })
+    input.addEventListener('blur', () => {
+      input.parentElement.style.transform = 'scale(1)'
+    })
+  })
+})
+</script>
 {% endblock %}

@@ -1,55 +1,215 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Venture AI</title>
-    <!-- Bootstrap 5 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VentureAI{% endblock %}</title>
 
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --background-color: #FFFFFF;
+            --text-color: #212529;
+            --shadow-intensity: 0.1;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #0A84FF;
+            --background-color: #1C1C1E;
+            --text-color: #FFFFFF;
+            --shadow-intensity: 0.3;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding-top: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, calc(0.1 * var(--shadow-intensity)));
+        }
+
+        [data-theme="dark"] .navbar-custom {
+            background: rgba(28, 28, 30, 0.95);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+
+        .nav-link:hover {
+            background: rgba(var(--primary-color), 0.1);
+            transform: translateY(-2px);
+        }
+
+        .theme-switcher {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(var(--primary-color), 0.1);
+            border: none;
+        }
+
+        .theme-switcher:hover {
+            transform: scale(1.1) rotate(180deg);
+            background: rgba(var(--primary-color), 0.2);
+        }
+
+        .card-effect {
+            background: var(--background-color);
+            border-radius: 20px;
+            border: 1px solid rgba(var(--primary-color), 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, calc(0.1 * var(--shadow-intensity)));
+            transition: all 0.3s ease;
+        }
+
+        .card-effect:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(var(--primary-color), calc(0.2 * var(--shadow-intensity)));
+        }
+
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg,
+                transparent,
+                rgba(var(--primary-color), 0.2),
+                transparent);
+            transform: rotate(45deg);
+            animation: glow 3s infinite;
+        }
+
+        @keyframes glow {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Навбар -->
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="bi bi-rocket me-2" style="color: var(--primary-color);"></i>VentureAI
+            </a>
 
-    <!-- Навбар (общий для всего проекта) -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="/">Venture AI</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupport"
-          aria-controls="navbarSupport" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupport">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            {% if user.is_authenticated %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'project_list' %}">Мои проекты</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'buy_tokens' %}">Купить токены</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'billing_history' %}">История платежей</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">Профиль</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Выйти</a></li>
-            {% else %}
-              <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Войти</a></li>
-              <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Регистрация</a></li>
-            {% endif %}
-          </ul>
+            <div class="d-flex align-items-center gap-3">
+                <button class="theme-switcher" id="themeToggle">
+                    <i class="bi bi-sun-fill" id="themeIcon"></i>
+                </button>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'project_list' %}">
+                                <i class="bi bi-folder2-open me-1"></i>Проекты
+                            </a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i>Аккаунт
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <form method="post" action="{% url 'logout' %}">
+                                  {% csrf_token %}
+                                  <button type="submit" class="dropdown-item text-danger">
+                                    <i class="bi bi-box-arrow-right me-2"></i> Выйти
+                                  </button>
+                                </form>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">Войти</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-primary ms-2 btn-glow" href="{% url 'register' %}">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
-      </div>
     </nav>
 
-    <div class="container mt-4">
-        <!-- Flash-сообщения Django (messages) -->
+    <!-- Основное содержимое -->
+    <main class="container my-5">
         {% if messages %}
-          {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-              {{ message }}
-              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-          {% endfor %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show card-effect">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
         {% endif %}
 
-        <!-- Здесь будет контент из дочерних шаблонов -->
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstra
+    <!-- Скрипты -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const body = document.body;
+
+        function toggleTheme() {
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                themeIcon.className = 'bi bi-sun-fill';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                themeIcon.className = 'bi bi-moon-fill';
+            }
+        }
+
+        // Проверка сохранённой темы
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            body.setAttribute('data-theme', 'dark');
+            themeIcon.className = 'bi bi-moon-fill';
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

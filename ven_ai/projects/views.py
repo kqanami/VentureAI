@@ -102,3 +102,5 @@ def project_delete(request, pk):
     return render(request, 'projects/project_delete.html', {
         'project': project,
     })
+
+

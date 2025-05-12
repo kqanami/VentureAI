@@ -9,6 +9,12 @@ class AnalysisForm(forms.Form):
     team_experience = forms.FloatField(label="Опыт команды (0..1)", initial=0.5)
     latitude = forms.FloatField(label="Широта")
     longitude = forms.FloatField(label="Долгота")
+    extra_info = forms.CharField(
+        label="Дополнительная информация",
+        widget=forms.Textarea(attrs={'rows': 4, 'placeholder': 'Введите дополнительную информацию для формирования бизнес-плана и рекомендаций...'}),
+        required=False,
+        initial=""
+    )
 
     def __init__(self, *args, project=None, **kwargs):
         super().__init__(*args, **kwargs)

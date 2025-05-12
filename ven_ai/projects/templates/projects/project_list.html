@@ -1,94 +1,190 @@
 {% extends "base.html" %}
-{% load crispy_forms_tags %}
+{% load static %}
 
 {% block content %}
-<div class="container my-5">
-  <!-- Заголовок и кнопка создания проекта -->
-  <div class="row mb-4">
-    <div class="col-12 d-flex justify-content-between align-items-center">
-      <h2>Мои проекты</h2>
-      <a href="{% url 'project_create' %}" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Создать проект
-      </a>
-    </div>
+<div class="container-main">
+  <!-- Заголовок и управление -->
+  <div class="d-flex justify-content-between align-items-center mb-5">
+    <h1 class="display-6 fw-bold">
+      <i class="bi bi-folder me-3"></i>Мои проекты
+    </h1>
+    <a href="{% url 'project_create' %}"
+       class="btn btn-primary rounded-pill px-4 py-2">
+      <i class="bi bi-plus-lg me-2"></i>Новый проект
+    </a>
   </div>
 
-  <!-- Форма фильтрации и сортировки -->
-  <form method="get" class="mb-4">
-    <div class="row g-2">
-      <div class="col-md-4">
-        <input type="text" name="q" class="form-control" placeholder="Поиск по названию или описанию" value="{{ request.GET.q }}">
+  <!-- Фильтры -->
+  <form method="get" class="mb-5">
+    <div class="row g-3">
+      <div class="col-lg-5">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent">
+            <i class="bi bi-search"></i>
+          </span>
+          <input type="text"
+                 name="q"
+                 class="form-control rounded-pill"
+                 placeholder="Поиск по проектам..."
+                 value="{{ request.GET.q }}">
+        </div>
       </div>
-      <div class="col-md-3">
-        <select name="sort" class="form-select">
-          <option value="">Сортировка</option>
-          <option value="budget_asc" {% if request.GET.sort == "budget_asc" %}selected{% endif %}>Бюджет (возрастание)</option>
-          <option value="budget_desc" {% if request.GET.sort == "budget_desc" %}selected{% endif %}>Бюджет (убывание)</option>
-          <option value="date_new" {% if request.GET.sort == "date_new" %}selected{% endif %}>Новые проекты</option>
-          <option value="date_old" {% if request.GET.sort == "date_old" %}selected{% endif %}>Старые проекты</option>
+
+      <div class="col-lg-4">
+        <select name="sort" class="form-select rounded-pill">
+          <option value="">Все проекты</option>
+          <option value="budget_asc" {% if request.GET.sort == "budget_asc" %}selected{% endif %}>
+            Бюджет ▲
+          </option>
+          <option value="budget_desc" {% if request.GET.sort == "budget_desc" %}selected{% endif %}>
+            Бюджет ▼
+          </option>
+          <option value="date_new" {% if request.GET.sort == "date_new" %}selected{% endif %}>
+            Сначала новые
+          </option>
+          <option value="date_old" {% if request.GET.sort == "date_old" %}selected{% endif %}>
+            Сначала старые
+          </option>
         </select>
       </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">Применить</button>
+
+      <div class="col-lg-3">
+        <button type="submit"
+                class="btn btn-outline-primary w-100 rounded-pill">
+          Применить фильтры
+        </button>
       </div>
     </div>
   </form>
 
   <!-- Список проектов -->
-  <div class="row">
+  <div class="row g-4">
     {% for project in projects %}
-      <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm">
+    <div class="col-12 col-md-6 col-xl-4 wow animate__fadeInUp">
+      <div class="card border-0 shadow-lg rounded-4 h-100 project-card">
+        <div class="card-img-top position-relative">
           {% if project.image %}
-            <img src="{{ project.image.url }}" class="card-img-top" alt="{{ project.name }}">
+            <img src="{{ project.image.url }}"
+                 class="img-fluid rounded-top-4"
+                 alt="{{ project.name }}"
+                 loading="lazy">
           {% else %}
-            <img src="https://via.placeholder.com/350x150" class="card-img-top" alt="Placeholder">
+            <div class="project-image-placeholder rounded-top-4"></div>
           {% endif %}
-          <div class="card-body">
-            <h5 class="card-title">{{ project.name }}</h5>
-            <p class="card-text">{{ project.description|truncatewords:20 }}</p>
-            <ul class="list-unstyled">
-              <li><strong>Бюджет:</strong> {{ project.budget|floatformat:2 }} тг.</li>
-              <li><strong>Локация:</strong> {{ project.location }}</li>
-            </ul>
-          </div>
-          <div class="card-footer text-center">
-            <a href="{% url 'project_detail' project.id %}" class="btn btn-outline-primary">Подробнее</a>
+          <div class="position-absolute top-0 end-0 m-3">
+            <span class="badge bg-primary rounded-pill px-3 py-2">
+              <i class="bi bi-cash-coin me-2"></i>{{ project.budget|floatformat:2 }} ₸
+            </span>
           </div>
         </div>
+
+        <div class="card-body">
+          <h3 class="h5 fw-bold mb-3">{{ project.name }}</h3>
+          <p class="text-secondary mb-4">{{ project.description|truncatechars:120 }}</p>
+
+          <div class="d-flex align-items-center gap-3 text-muted">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-geo-alt me-2"></i>
+              <small>{{ project.location }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer bg-transparent border-0 pt-0">
+          <a href="{% url 'project_detail' project.id %}"
+             class="btn btn-outline-primary w-100 rounded-pill">
+            Подробнее <i class="bi bi-arrow-right ms-2"></i>
+          </a>
+        </div>
       </div>
+    </div>
     {% empty %}
-      <div class="col-12">
-        <p class="text-center">Проекты не найдены. Попробуйте изменить параметры фильтра.</p>
-      </div>
+    <div class="col-12 text-center py-5">
+      <img src="{% static 'images/empty-state.svg' %}"
+           class="mb-4"
+           alt="Нет проектов"
+           style="max-width: 300px;">
+      <h3 class="h5 text-secondary">Проектов не найдено</h3>
+      <p class="text-muted">Попробуйте изменить параметры фильтра или создать новый проект</p>
+    </div>
     {% endfor %}
   </div>
 
   <!-- Пагинация -->
   {% if projects.has_other_pages %}
-    <nav aria-label="Page navigation">
-      <ul class="pagination justify-content-center">
-        {% if projects.has_previous %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ projects.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Предыдущая">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-        {% endif %}
-        {% for num in projects.paginator.page_range %}
-          <li class="page-item {% if projects.number == num %}active{% endif %}">
-            <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
-          </li>
-        {% endfor %}
-        {% if projects.has_next %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ projects.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" aria-label="Следующая">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-        {% endif %}
-      </ul>
-    </nav>
+  <nav class="mt-5">
+    <ul class="pagination justify-content-center">
+      {% if projects.has_previous %}
+      <li class="page-item">
+        <a class="page-link rounded-pill me-2"
+           href="?page={{ projects.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% endif %}
+
+      {% for num in projects.paginator.page_range %}
+      <li class="page-item {% if projects.number == num %}active{% endif %}">
+        <a class="page-link rounded-circle mx-1"
+           style="min-width: 40px;"
+           href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+          {{ num }}
+        </a>
+      </li>
+      {% endfor %}
+
+      {% if projects.has_next %}
+      <li class="page-item">
+        <a class="page-link rounded-pill ms-2"
+           href="?page={{ projects.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
   {% endif %}
 </div>
+
+<style>
+  .project-card {
+    transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+    border: 1px solid rgba(var(--text-primary), 0.1);
+  }
+
+  .project-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .project-image-placeholder {
+    background: rgba(var(--text-primary), 0.05);
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .project-image-placeholder::after {
+    content: "📁";
+    font-size: 3rem;
+    opacity: 0.3;
+  }
+
+  .page-item.active .page-link {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .page-link {
+    color: var(--text-primary);
+    border: 1px solid rgba(var(--text-primary), 0.1);
+    transition: all 0.3s var(--ease-out);
+  }
+
+  .page-link:hover {
+    background: rgba(var(--primary), 0.1);
+    color: var(--primary);
+  }
+</style>
 {% endblock %}

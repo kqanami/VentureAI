@@ -1,102 +1,342 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}VentureAI — AI‑аналитика для стартапов{% endblock %}
+
 {% block content %}
+<!-- === External libs === -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js" defer></script>
+
+<style>
+  /* === Apple-inspired Design System === */
+  :root {
+    --primary: #007AFF;
+    --secondary: #34C759;
+    --surface: #FFFFFF;
+    --background: #F5F5F7;
+    --text-primary: #1D1D1F;
+    --text-secondary: #86868B;
+    --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --section-spacing: 8rem;
+    --radius-xl: 2rem;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1);
+  }
+
+  .dark {
+    --surface: #1D1D1F;
+    --background: #000000;
+    --text-primary: #F5F5F7;
+    --text-secondary: #8E8E93;
+    --shadow-sm: 0 1px 2px rgba(255,255,255,0.05);
+    --shadow-lg: 0 20px 25px -5px rgba(255,255,255,0.1);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--background);
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* === Navigation === */
+  .navbar-glass {
+    background: rgba(var(--surface), 0.8);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(var(--text-primary), 0.1);
+    padding: 1rem 0;
+  }
+
+  /* === Hero Section === */
+  .hero-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 8rem 0 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-headline {
+    font-size: clamp(2.5rem, 8vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 2rem;
+  }
+
+  /* === Features Grid === */
+  .feature-grid {
+    display: grid;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    transition: transform 0.3s var(--ease-out);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* === Testimonials Slider === */
+  .testimonial-card {
+    border: 1px solid rgba(var(--text-primary), 0.1);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+    background: var(--surface);
+  }
+
+  /* === Pricing Cards === */
+  .pricing-card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--primary);
+  }
+
+  /* === Interactive Elements === */
+  .btn-dynamic {
+    padding: 1rem 2rem;
+    border-radius: 2rem;
+    font-weight: 500;
+    transition: all 0.3s var(--ease-out);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  /* === Dark Mode Toggle === */
+  .theme-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s ease;
+  }
+</style>
+
+<!-- Navigation -->
+<nav class="navbar navbar-glass fixed-top">
+  <div class="container">
+    <a class="navbar-brand fs-3 fw-bold" href="#">VentureAI</a>
+    <div class="d-flex gap-3 align-items-center">
+      <button class="theme-toggle" id="themeToggle">
+        <i class="bi bi-moon-stars"></i>
+      </button>
+      <a href="{% url 'register' %}" class="btn btn-primary btn-dynamic">
+        Начать бесплатно
+      </a>
+    </div>
+  </div>
+</nav>
+
 <!-- Hero Section -->
-<div class="jumbotron jumbotron-fluid text-center" style="background-image: url('{% static "images/hero-bg.jpg" %}'); background-size: cover; background-position: center; color: white; padding: 150px 0;">
+<section class="hero-section">
   <div class="container">
-    <h1 class="display-4 fw-bold">Добро пожаловать в [Ваш сервис]</h1>
-    <p class="lead">Проверьте свой бизнес-план с помощью AI-анализов и экспертных рекомендаций.</p>
-    <a href="{% url 'register' %}" class="btn btn-primary btn-lg me-2">Попробовать сейчас</a>
-    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Войти</a>
-  </div>
-</div>
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <h1 class="hero-headline">
+          AI-анализ бизнес-планов<br>
+          <span class="text-primary">нового поколения</span>
+        </h1>
+        <p class="lead text-secondary mb-5">
+          Мгновенная аналитика, прогнозирование и рекомендации для вашего стартапа
+        </p>
+        <div class="d-flex gap-3">
+          <a href="{% url 'register' %}" class="btn btn-primary btn-dynamic">
+            <i class="bi bi-rocket"></i>
+            Начать анализ
+          </a>
+          <a href="#features" class="btn btn-outline-secondary btn-dynamic">
+            Узнать больше
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6">
 
-<!-- Features Section -->
-<div class="container py-5">
-  <div class="row text-center">
-    <div class="col-md-4">
-      <i class="bi bi-speedometer2" style="font-size: 3rem; color: #007bff;"></i>
-      <h4 class="mt-3">Быстрый анализ</h4>
-      <p>Мгновенный анализ ваших бизнес-планов с помощью передовых AI-технологий.</p>
-    </div>
-    <div class="col-md-4">
-      <i class="bi bi-shield-check" style="font-size: 3rem; color: #28a745;"></i>
-      <h4 class="mt-3">Надёжность</h4>
-      <p>Гарантированные результаты, основанные на проверенных алгоритмах и экспертизе.</p>
-    </div>
-    <div class="col-md-4">
-      <i class="bi bi-chat-left-text" style="font-size: 3rem; color: #ffc107;"></i>
-      <h4 class="mt-3">Поддержка 24/7</h4>
-      <p>Всесторонняя поддержка и консультации в режиме онлайн.</p>
+
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- How It Works Section -->
-<div class="container-fluid bg-light py-5">
+
+<!-- Features -->
+<section class="py-5" id="features">
   <div class="container">
-    <div class="row align-items-center">
-      <div class="col-md-6">
-        <h2>Как это работает?</h2>
-        <p>Наш сервис объединяет мощный AI-анализ, передовые ML-модели и экспертные рекомендации. Создайте профиль, загрузите бизнес-план и получите подробный анализ с предложениями по улучшению.</p>
+    <div class="text-center mb-5">
+      <h2 class="display-5 mb-3">Возможности платформы</h2>
+      <p class="text-secondary">Инновационные инструменты для роста бизнеса</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <i class="bi bi-lightning-charge text-primary fs-1 mb-4"></i>
+        <h3>Мгновенный анализ</h3>
+        <p class="text-secondary">Результаты за 15 секунд с использованием облачных вычислений</p>
       </div>
-      <div class="col-md-6">
-        <img src="{% static 'images/how-it-works.png' %}" alt="Как это работает" class="img-fluid">
+
+      <div class="feature-card">
+        <i class="bi bi-graph-up text-primary fs-1 mb-4"></i>
+        <h3>Прогнозирование</h3>
+        <p class="text-secondary">Точные прогнозы на основе машинного обучения</p>
+      </div>
+
+      <div class="feature-card">
+        <i class="bi bi-shield-check text-primary fs-1 mb-4"></i>
+        <h3>Безопасность</h3>
+        <p class="text-secondary">Шифрование данных по стандарту AES-256</p>
       </div>
     </div>
   </div>
-</div>
+</section>
 
-<!-- Testimonials Section -->
-<div class="container py-5">
-  <h2 class="text-center mb-4">Отзывы наших клиентов</h2>
-  <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
-    <div class="carousel-inner">
-      <div class="carousel-item active">
-        <blockquote class="blockquote text-center">
-          <p class="mb-4">"Сервис перевернул мой взгляд на бизнес-анализ. Рекомендую всем стартаперам!"</p>
-          <footer class="blockquote-footer">Иван Иванов, <cite title="Source Title">CEO компании X</cite></footer>
-        </blockquote>
+<!-- Stats -->
+<section class="py-5 bg-primary text-white">
+  <div class="container">
+    <div class="row text-center g-4">
+      <div class="col-md-3">
+        <div class="display-4 fw-bold">98%</div>
+        <p>Точность прогнозов</p>
       </div>
-      <div class="carousel-item">
-        <blockquote class="blockquote text-center">
-          <p class="mb-4">"Быстрый, точный и очень удобный инструмент для анализа. Отличная поддержка."</p>
-          <footer class="blockquote-footer">Мария Петрова, <cite title="Source Title">Основатель компании Y</cite></footer>
-        </blockquote>
+      <div class="col-md-3">
+        <div class="display-4 fw-bold">15с</div>
+        <p>Среднее время анализа</p>
       </div>
-      <div class="carousel-item">
-        <blockquote class="blockquote text-center">
-          <p class="mb-4">"Сервис помог мне выявить слабые места моего бизнес-плана и скорректировать стратегию."</p>
-          <footer class="blockquote-footer">Алексей Сидоров, <cite title="Source Title">Предприниматель</cite></footer>
-        </blockquote>
+      <div class="col-md-3">
+        <div class="display-4 fw-bold">500+</div>
+        <p>Успешных проектов</p>
+      </div>
+      <div class="col-md-3">
+        <div class="display-4 fw-bold">24/7</div>
+        <p>Техническая поддержка</p>
       </div>
     </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="prev">
-      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Предыдущий</span>
-    </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#testimonialCarousel" data-bs-slide="next">
-      <span class="carousel-control-next-icon" aria-hidden="true"></span>
-      <span class="visually-hidden">Следующий</span>
-    </button>
   </div>
-</div>
+</section>
 
-<!-- Call to Action Section -->
-<div class="container-fluid bg-primary text-white py-5">
+<!-- Testimonials -->
+<section class="py-5" id="testimonials">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="display-5 mb-3">Отзывы клиентов</h2>
+      <p class="text-secondary">Что говорят наши пользователи</p>
+    </div>
+
+    <div class="splide">
+      <div class="splide__track">
+        <div class="splide__list">
+          <div class="splide__slide">
+            <div class="testimonial-card">
+              <p class="mb-3">"Лучший инструмент для стартапов, который я использовал!"</p>
+              <div class="d-flex align-items-center gap-2">
+                <img src="{% static 'avatars/user1.jpg' %}"
+                     class="rounded-circle"
+                     width="48"
+                     alt="User">
+                <div>
+                  <div class="fw-bold">Анна Иванова</div>
+                  <div class="text-secondary">CEO TechStart</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Добавьте дополнительные слайды -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
   <div class="container text-center">
-    <h2>Готовы начать?</h2>
-    <p class="lead">Зарегистрируйтесь сегодня и получите первый анализ бесплатно!</p>
-    <a href="{% url 'register' %}" class="btn btn-light btn-lg me-2">Регистрация</a>
-    <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Войти</a>
+    <h2 class="display-5 mb-4">Начните бесплатно сегодня</h2>
+    <p class="mb-5">Первые 3 анализа - полностью бесплатны</p>
+    <a href="{% url 'register' %}" class="btn btn-light btn-dynamic px-5">
+      Начать сейчас →
+    </a>
   </div>
-</div>
+</section>
 
 <!-- Footer -->
-<footer class="bg-dark text-white py-4">
-  <div class="container text-center">
-    <p class="mb-0">&copy; {{ now|date:"Y" }} Venture AI. Все права защищены.</p>
+<footer class="py-5 bg-surface">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <h5 class="fw-bold mb-3">VentureAI</h5>
+        <p class="text-secondary">Инновационная платформа для анализа бизнес-планов</p>
+      </div>
+      <div class="col-lg-2">
+        <h6 class="fw-bold mb-3">Продукт</h6>
+        <ul class="list-unstyled">
+          <li><a href="#features" class="text-secondary text-decoration-none">Возможности</a></li>
+          <li><a href="#pricing" class="text-secondary text-decoration-none">Тарифы</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3">
+        <h6 class="fw-bold mb-3">Поддержка</h6>
+        <ul class="list-unstyled">
+          <li><a href="#faq" class="text-secondary text-decoration-none">FAQ</a></li>
+          <li><a href="#" class="text-secondary text-decoration-none">Документация</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-3">
+        <h6 class="fw-bold mb-3">Контакты</h6>
+        <ul class="list-unstyled">
+          <li><a href="mailto:hello@ventureai.com" class="text-secondary text-decoration-none">hello@ventureai.com</a></li>
+          <li><a href="tel:+7764325214" class="text-secondary text-decoration-none">+7 777 123 45 67</a></li>
+        </ul>
+      </div>
+    </div>
+    <hr class="my-5">
+    <div class="text-center text-secondary">
+      <small>© 2023 VentureAI. Все права защищены</small>
+    </div>
   </div>
 </footer>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Инициализация слайдера
+    new Splide('.splide', {
+      type: 'loop',
+      perPage: 3,
+      gap: '2rem',
+      breakpoints: {
+        992: { perPage: 2 },
+        768: { perPage: 1 }
+      }
+    }).mount();
+
+    // Темная тема
+    const toggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+
+    toggle.addEventListener('click', () => {
+      root.classList.toggle('dark');
+      localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+    });
+  });
+</script>
 {% endblock %}

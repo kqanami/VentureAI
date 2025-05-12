@@ -1,161 +1,284 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize static %}
+
+{% block title %}Анализ «{{ analysis_req.project.name }}» — результаты{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-  <!-- Заголовок -->
-  <div class="row">
-    <div class="col-12 text-center mb-4">
-      <h2 class="animate__animated animate__fadeInDown">
-        Результаты анализа проекта "{{ analysis_req.project.name }}"
-      </h2>
-      <p class="text-muted animate__animated animate__fadeInUp">
-        Анализ проведён: {{ analysis_req.result.timestamp }}
-      </p>
-    </div>
-  </div>
+<!-- External libs -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<link rel="stylesheet" href="https://unpkg.com/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-  <!-- Карточки с результатами -->
-  <div class="row">
-    <!-- Вероятность успеха с прогресс-баром -->
-    <div class="col-md-6">
-      <div class="card shadow-sm mb-4 animate__animated animate__fadeInLeft">
-        <div class="card-body">
-          <h4 class="card-title">Вероятность успеха</h4>
-          <h1 class="display-4">{{ analysis_req.result.success_prob|floatformat:2 }}%</h1>
-          <p class="card-text">
-            Наша модель прогнозирует, что шансы на успех проекта составляют
-            <strong>{{ analysis_req.result.success_prob|floatformat:2 }}%</strong>.
-          </p>
-          <div class="progress mt-3" style="height: 25px;">
-            <div class="progress-bar bg-success" role="progressbar" style="width: {{ analysis_req.result.success_prob|floatformat:2 }}%;" aria-valuenow="{{ analysis_req.result.success_prob|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100">
-              {{ analysis_req.result.success_prob|floatformat:2 }}%
+<style>
+:root {
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --neon-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+}
+
+.dark {
+  --glass-bg: rgba(17, 24, 39, 0.5);
+  --neon-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+}
+
+.result-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.result-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--neon-shadow);
+}
+
+.glow-progress {
+  height: 1rem;
+  border-radius: 2rem;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.glow-progress-bar {
+  height: 100%;
+  background: var(--gradient-primary);
+  position: relative;
+}
+
+.glow-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.2) 50%,
+    rgba(255,255,255,0) 100%);
+  animation: glow 2s infinite;
+}
+
+@keyframes glow {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.timeline {
+  border-left: 2px solid #6366f1;
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline-step {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  left: -2.35rem;
+  top: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #6366f1;
+  box-shadow: 0 0 10px #6366f1;
+}
+
+.chart-container {
+  position: relative;
+  height: 400px;
+}
+
+.radial-gradient {
+  background: radial-gradient(circle at center, #6366f133 0%, transparent 70%);
+}
+</style>
+
+<div class="container py-5">
+  <!-- Hero section -->
+  <header class="text-center mb-5">
+    <div class="radial-gradient animate__animated animate__zoomIn">
+      <h1 class="display-4 fw-bold mb-3 text-gradient">«{{ analysis_req.project.name }}»</h1>
+    </div>
+    <p class="text-muted animate__animated animate__fadeInUp">
+      <i class="bi bi-clock-history me-1"></i>
+      Анализ завершён {{ analysis_req.result.timestamp|naturaltime }}
+    </p>
+  </header>
+
+  <!-- Main metrics -->
+  <div class="row g-4 mb-5">
+    <div class="col-lg-8">
+      <div class="result-card p-4 animate__animated animate__fadeInLeft">
+        <div class="d-flex align-items-center mb-4">
+          <div class="flex-grow-1">
+            <h3 class="mb-0">Вероятность успеха</h3>
+            <small class="text-muted">Прогноз нашей AI-модели</small>
+            {% with prob=analysis_req.result.success_prob %}
+            {% endwith %}
+          </div>
+          {% with prob=analysis_req.result.success_prob %}
+          <div class="display-2 fw-bold ms-3">{{ prob|floatformat:2 }}%</div>
+          {% endwith %}
+        </div>
+
+        <div class="glow-progress">
+          <div class="glow-progress-bar" style="width: {{ analysis_req.result.success_prob }}%"></div>
+        </div>
+
+        <div class="mt-3">
+          <div class="row g-3">
+            <div class="col">
+              <div class="text-center p-3 bg-dark bg-opacity-10 rounded-lg">
+                <div class="h5 mb-1">Риски</div>
+                <div class="h2 text-danger">{{ analysis_req.result.risk_score|floatformat:1 }}</div>
+                <small>/10</small>
+              </div>
+            </div>
+            <div class="col">
+              <div class="text-center p-3 bg-dark bg-opacity-10 rounded-lg">
+                <div class="h5 mb-1">ROI</div>
+                <div class="h2 text-success">{{ analysis_req.result.roi|floatformat:1 }}x</div>
+                <small>Ожидаемый</small>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <!-- Диаграмма -->
-    <div class="col-md-6">
-      <div class="card shadow-sm mb-4 animate__animated animate__fadeInRight">
-        <div class="card-body">
-          <canvas id="resultChart" width="400" height="400"></canvas>
+
+    <div class="col-lg-4">
+      <div class="result-card h-100 p-4 animate__animated animate__fadeInRight">
+        <h5 class="mb-3">Ключевые метрики</h5>
+        <div class="chart-container">
+          <canvas id="radarChart"></canvas>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Рекомендации -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card shadow-sm animate__animated animate__fadeInUp">
-        <div class="card-header">
-          <h4>Рекомендации</h4>
-        </div>
-        <div class="card-body">
-          <p class="card-text" style="white-space: pre-wrap;">
-            {{ analysis_req.result.recommendations|linebreaks }}
-          </p>
-          <button id="copyRecs" class="btn btn-outline-secondary btn-sm mt-2">
-            Скопировать рекомендации
-          </button>
-        </div>
+  <!-- Recommendations -->
+  <section class="mt-5 animate__animated animate__fadeInUp">
+    <div class="card shadow-sm card-hover">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Рекомендации AI‑эксперта</h5>
+        <button id="copyRecs" class="btn btn-sm btn-outline-secondary"><i class="bi bi-clipboard"></i> Скопировать</button>
+      </div>
+      <div class="card-body" style="white-space: pre-wrap;">
+        {{ analysis_req.result.recommendations|linebreaksbr }}
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Действия -->
-  <div class="row mt-4">
-    <div class="col-12 text-center">
-      <a href="{% url 'project_detail' analysis_req.project.id %}" class="btn btn-secondary me-2">
-        Вернуться к проекту
+  <!-- Business plan (optional) -->
+  {% if analysis_req.result.business_plan %}
+  <section class="mt-4 animate__animated animate__fadeInUp">
+    <div class="card shadow-sm card-hover">
+      <div class="card-header"><h5 class="mb-0">Пошаговый план развития бизнеса</h5></div>
+      <div class="card-body"><pre class="mb-0" style="white-space: pre-line;">{{ analysis_req.result.business_plan }}</pre></div>
+    </div>
+  </section>
+  {% endif %}
+
+
+  <!-- Actions -->
+  <div class="text-center mt-5 animate__animated animate__fadeInUp">
+    <div class="btn-group">
+      <a href="{% url 'project_detail' analysis_req.project.id %}" class="btn btn-lg btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Проект
       </a>
-      <a href="{% url 'scenario_chat' analysis_req.id %}" class="btn btn-info me-2">
-        Уточнить анализ (чат)
-      </a>
-      <button id="downloadPDF" class="btn btn-primary">
-        Скачать PDF
+      <button id="downloadPDF" class="btn btn-lg btn-primary">
+        <i class="bi bi-file-earmark-pdf"></i> Экспорт
       </button>
+      <a href="{% url 'scenario_chat' analysis_req.id %}" class="btn btn-lg btn-outline-primary">
+        <i class="bi bi-robot"></i> Обсудить
+      </a>
     </div>
   </div>
 </div>
 
-<!-- Подключаем Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Подключаем html2pdf для генерации PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Scripts -->
 <script>
-  // Плагин для вывода текста в центре doughnut диаграммы
-  const centerTextPlugin = {
-    id: 'centerText',
-    beforeDraw(chart) {
-      const {ctx, chartArea: {width, height}} = chart;
-      ctx.save();
-      const fontSize = (height / 114).toFixed(2);
-      ctx.font = fontSize + "em sans-serif";
-      ctx.textBaseline = "middle";
-      const text = "{{ analysis_req.result.success_prob|floatformat:2 }}%",
-            textX = Math.round((width - ctx.measureText(text).width) / 2),
-            textY = height / 2;
-      ctx.fillText(text, textX, textY);
-      ctx.restore();
+document.addEventListener("DOMContentLoaded", () => {
+  // Radar Chart
+  const radarCtx = document.getElementById('radarChart').getContext('2d');
+  new Chart(radarCtx, {
+    type: 'radar',
+    data: {
+      labels: ['Риск', 'ROI', 'Ликвидность', 'Спрос', 'Конкуренция'],
+      datasets: [{
+        label: 'Оценка',
+        data: [8, 7.5, 6.8, 8.2, 5.3],
+        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+        borderColor: '#6366f1',
+        pointBackgroundColor: '#6366f1',
+      }]
+    },
+    options: {
+      scales: { r: { beginAtZero: true, max: 10 } },
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        datalabels: { color: '#fff' }
+      }
     }
-  };
-
-  // Получаем значения вероятности успеха
-  const successProb = parseFloat("{{ analysis_req.result.success_prob|floatformat:2 }}");
-  const failProb = 100 - successProb;
-
-  const ctx = document.getElementById('resultChart').getContext('2d');
-  const resultChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-          labels: ['Успех', 'Неуспех'],
-          datasets: [{
-              data: [successProb, failProb],
-              backgroundColor: ['#28a745', '#dc3545'],
-              hoverBackgroundColor: ['#218838', '#c82333']
-          }]
-      },
-      options: {
-          responsive: true,
-          cutout: '70%',
-          animation: {
-            animateRotate: true,
-            duration: 1500
-          },
-          plugins: {
-              legend: { position: 'bottom' },
-              title: {
-                  display: true,
-                  text: 'Прогноз распределения'
-              }
-          }
-      },
-      plugins: [centerTextPlugin]
   });
 
-  // Копирование рекомендаций в буфер обмена
-  document.getElementById('copyRecs').addEventListener('click', function() {
-    const text = "{{ analysis_req.result.recommendations|escapejs }}";
-    navigator.clipboard.writeText(text).then(() => {
-      alert('Рекомендации скопированы в буфер обмена!');
-    }).catch(err => {
-      alert('Ошибка копирования: ' + err);
-    });
+  // Copy recommendations
+  document.getElementById('copyRecs').addEventListener('click', async () => {
+    await navigator.clipboard.writeText(`{{ analysis_req.result.recommendations|escapejs }}`);
+    Swal.fire({ icon: 'success', title: 'Скопировано!', showConfirmButton: false, timer: 1500 });
   });
 
-  // Скачивание страницы в PDF
-  document.getElementById('downloadPDF').addEventListener('click', function() {
-    const element = document.querySelector('.container');
-    const opt = {
-      margin:       0.5,
-      filename:     'analysis_result_{{ analysis_req.project.name|slugify }}.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().set(opt).from(element).save();
+  // Text to Speech
+  document.getElementById('audioRecs').addEventListener('click', () => {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(`{{ analysis_req.result.recommendations|escapejs }}`);
+    utterance.lang = 'ru-RU';
+    synth.speak(utterance);
   });
+
+  // PDF Export
+  document.getElementById('downloadPDF').addEventListener('click', () => {
+    html2pdf().set({
+      margin: [0.5, 0.5],
+      filename: `Анализ_{{ analysis_req.project.name|slugify }}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(document.body).save();
+  });
+
+  // Init Splide
+  new Splide('.splide', {
+    type: 'loop',
+    perPage: 3,
+    gap: '1rem',
+    breakpoints: {
+      992: { perPage: 2 },
+      768: { perPage: 1 }
+    }
+  }).mount();
+
+  // Confetti
+  if ({{ analysis_req.result.success_prob }} >= 80) {
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+  }
+});
 </script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
 {% endblock %}
+

@@ -4,16 +4,12 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 import uuid
-
+from django.shortcuts import render
 from .forms import CustomUserRegistrationForm
 
 User = get_user_model()
 
 def register_view(request):
-    """
-    Регистрация. Создаём пользователя (is_active=False), генерим токен,
-    отправляем письмо с ссылкой на активацию.
-    """
     if request.method == 'POST':
         form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
@@ -74,7 +70,8 @@ def profile_view(request):
 
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-
+from django.views.decorators.http import require_GET
+@require_GET
 def logout_view(request):
     logout(request)
-    return redirect('landing')  # или другой URL после выхода
+    return redirect('landing')

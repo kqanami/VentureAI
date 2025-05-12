@@ -2,8 +2,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
-
-
 from .models import AnalysisRequest
 from .forms import AnalysisForm
 from .chat_utils import chatgpt_conversation  # для scenario_chat
@@ -38,11 +36,11 @@ def create_analysis_request_view(request, project_id):
                 'location_factor': form.cleaned_data['location_factor'],
                 'marketing_skill': form.cleaned_data['marketing_skill'],
                 'team_experience': form.cleaned_data['team_experience'],
-
                 # Координаты берем из project (БД)
                 'latitude': float(project.latitude) if project.latitude is not None else None,
                 'longitude': float(project.longitude) if project.longitude is not None else None,
-
+                # Дополнительная информация для бизнес-плана и рекомендаций
+                'extra_info': form.cleaned_data.get('extra_info', '')
             }
 
             # Создаём AnalysisRequest
@@ -58,12 +56,13 @@ def create_analysis_request_view(request, project_id):
             messages.success(request, "Заявка на анализ создана! Подождите некоторое время для результатов.")
             return redirect('analysis_detail', analysis_request_id=analysis_req.id)
     else:
-        # Если хотите задать начальные значения полей формы из проекта,
-        # можно сделать так:
+        # Задаем начальные значения полей формы из проекта
         form = AnalysisForm(initial={
              'budget': project.budget,
              'latitude': project.latitude,
              'longitude': project.longitude,
+             # Начальное значение для extra_info можно задать, если нужно
+             'extra_info': ''
         })
 
     return render(request, 'analysis/analysis_form.html', {
@@ -92,13 +91,13 @@ def scenario_chat_view(request, analysis_request_id):
     if request.method == 'POST':
         user_message = request.POST.get('user_message', '').strip()
         if user_message:
-            # Добавляем сообщение "user" в chat_history
+            # Добавляем сообщение пользователя в историю чата
             chat_history = analysis_req.chat_history
             chat_history.append({"role": "user", "content": user_message})
 
             # Вызываем ChatGPT
             response_text = chatgpt_conversation(chat_history)
-            # Добавляем ответ assistant
+            # Добавляем ответ от ChatGPT в историю
             chat_history.append({"role": "assistant", "content": response_text})
 
             analysis_req.chat_history = chat_history
