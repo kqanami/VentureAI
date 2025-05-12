@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}CRM Панель Управления{% endblock %}
+
+{% block content %}
+<style>
+  .stat-card {
+    transition: transform 0.2s ease-in-out;
+  }
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+  }
+</style>
+
+<div class="container py-5">
+  <h1 class="mb-4 fw-bold">CRM Панель Управления</h1>
+
+  <div class="row g-4 mb-5">
+    <div class="col-md-4">
+      <div class="bg-white border rounded shadow-sm p-4 text-center stat-card">
+        <h6 class="text-muted">Пользователи онлайн</h6>
+        <h2 class="fw-bold text-primary">{{ active_users }}</h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="bg-white border rounded shadow-sm p-4 text-center stat-card">
+        <h6 class="text-muted">Всего пользователей</h6>
+        <h2 class="fw-bold text-success">{{ total_users }}</h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="bg-white border rounded shadow-sm p-4 text-center stat-card">
+        <h6 class="text-muted">Анализов проведено</h6>
+        <h2 class="fw-bold text-danger">{{ analyses_done }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-4 d-flex justify-content-between align-items-center">
+    <h3 class="fw-semibold">Последние регистрации</h3>
+    <a href="#" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-download"></i> Выгрузить отчёт
+    </a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Аватар</th>
+          <th>Имя пользователя</th>
+          <th>Email</th>
+          <th>Дата регистрации</th>
+          <th>Действия</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in recent_users %}
+        <tr>
+          <td>
+            <img src="{{ user.profile.avatar.url|default:'/static/images/default_avatar.png' }}" class="user-avatar" alt="avatar">
+          </td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.date_joined|date:"d.m.Y H:i" }}</td>
+          <td>
+            <a href="#" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-bell"></i>
+            </a>
+            <a href="#" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-person-x"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
